@@ -1,0 +1,30 @@
+{
+  "name": "mblock-mlink",
+  "version": "1.3.0",
+  "description": "Multiplatform version of mblock-mlink",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/audetto/mblock-mlink.git"
+  },
+  "keywords": [
+    "mbot",
+    "mlink",
+    "mblock"
+  ],
+  "author": "MakeBlock",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/audetto/mblock-mlink/issues"
+  },
+  "homepage": "https://github.com/audetto/mblock-mlink#readme",
+  "dependencies": {
+    "@babel/runtime": "^7.4.5",
+    "iconv-lite": "^0.4.24",
+    "serialport": "^7.1.5",
+    "socket.io": "^2.2.0"
+  }
+}
