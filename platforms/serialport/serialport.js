@@ -1,53 +1,36 @@
 "use strict";
 
-var _interopRequireDefault = require("@babel/runtime/helpers/interopRequireDefault"), _classCallCheck2 = _interopRequireDefault(require("@babel/runtime/helpers/classCallCheck")), _createClass2 = _interopRequireDefault(require("@babel/runtime/helpers/createClass")), serialport = require("serialport"), child_process = require("child_process"), channel = require("../../channel"), logger = require("../../logger"), SerialPortChildProcess = __dirname + "/serialPortChildProcess.js", MessageChannel = function() {
-    function e() {
-        (0, _classCallCheck2.default)(this, e), this.init();
+function _classCallCheck(e, r) {
+    if (!(e instanceof r)) throw new TypeError("Cannot call a class as a function");
+}
+
+function _defineProperties(e, r) {
+    for (var t = 0; t < r.length; t++) {
+        var n = r[t];
+        n.enumerable = n.enumerable || !1, n.configurable = !0, "value" in n && (n.writable = !0),
+        Object.defineProperty(e, n.key, n);
     }
-    return (0, _createClass2.default)(e, [ {
-        key: "init",
-        value: function() {
-            this.messageChannelHandleMap = {}, this.messageChannelHandleTimeOutMap = {}, this._GC();
-        }
-    }, {
-        key: "pop",
-        value: function(e) {
-            var r = null;
-            return this.messageChannelHandleMap[e] && (r = this.messageChannelHandleMap[e]),
-            delete this.messageChannelHandleMap[e], delete this.messageChannelHandleTimeOutMap[e],
-            r;
-        }
-    }, {
-        key: "push",
-        value: function(e, r) {
-            this.messageChannelHandleMap[e] = r, this.messageChannelHandleTimeOutMap[e] = new Date().getTime();
-        }
-    }, {
-        key: "_GC",
-        value: function() {
-            var t = this;
-            setInterval(function() {
-                if (!(Object.keys(t.messageChannelHandleMap).length < 512)) {
-                    var e = new Date().getTime();
-                    for (var r in t.messageChannelHandleTimeOutMap) 3e5 <= e - t.messageChannelHandleTimeOutMap[r] && (delete t.messageChannelHandleTimeOutMap[r],
-                    delete t.messageChannelHandleMap[r]);
-                }
-            }, 3e3);
-        }
-    } ]), e;
-}(), msgChannel = new MessageChannel(), SerialPort = function() {
+}
+
+function _createClass(e, r, t) {
+    return r && _defineProperties(e.prototype, r), t && _defineProperties(e, t), e;
+}
+
+var serialport = require("serialport"), child_process = require("child_process"), channel = require("../../channel"), SerialPortChildProcess = __dirname + "/serialPortChildProcess.js", SerialPort = function() {
     function e() {
-        (0, _classCallCheck2.default)(this, e), this.currentSerialport = {
+        _classCallCheck(this, e), this.currentSerialport = {
             port: "",
             baudRate: 115200
-        }, this.processChannelHandleMap = {}, this.response = null;
+        }, this.processChannelHandleMap = {}, this.messageChannelHandleMap = {}, this.response = null,
+        this.heartLoop = null;
     }
-    return (0, _createClass2.default)(e, [ {
+    return _createClass(e, [ {
         key: "executeCmd",
         value: function(e, r) {
+            this.response = r;
             var t = e.getOptions();
             switch (t.hasOwnProperty("port") && (this.currentSerialport.port = t.port), t.hasOwnProperty("baudRate") && (this.currentSerialport.baudRate = t.baudRate),
-            msgChannel.push(r.messageId, r), this.response = r, e.Body.cmd) {
+            e.Body.cmd) {
               case "flush":
                 return this.doFlush(e, r);
 
@@ -55,7 +38,7 @@ var _interopRequireDefault = require("@babel/runtime/helpers/interopRequireDefau
                 return this.doGetDevices(e, r);
 
               case "open":
-                return this.fork(e, r);
+                return this.fork();
 
               case "close":
                 return this.doClose(e, r);
@@ -68,66 +51,65 @@ var _interopRequireDefault = require("@babel/runtime/helpers/interopRequireDefau
 
               case "write":
                 return this.doWrite(e, r);
-
-              default:
-                return msgChannel.pop(r.messageId);
             }
         }
     }, {
         key: "doGetDevices",
         value: function(e, t) {
             serialport.list(function(e, r) {
-                logger.debug("> ".concat(t.io.id, ": -> [getDevices]"), r), t.reply(e, r);
+                t.reply(e, "", r);
             });
         }
     }, {
         key: "doClose",
         value: function(e, r) {
-            return r.reply(null, this.currentSerialport.port), logger.debug("> ".concat(r.io.id, ": -> [close]")),
+            return r.reply(null, this.currentSerialport.port), console.log("> ".concat(r.io.id, ": -> [close]")),
             this.kill();
         }
     }, {
         key: "doSet",
         value: function(e, r) {
-            if (!this.processChannelHandleMap["".concat(this.currentSerialport.port)]) return logger.debug("> ".concat(r.io.id, ": -> [doSet], err: disconnect.")),
+            if (!this.processChannelHandleMap["".concat(this.currentSerialport.port)]) return console.log("> ".concat(r.io.id, ": -> [doSet], err: disconnect.")),
             r.reply("disconnect", this.currentSerialport.port);
             var t = e.getParams();
-            this.processSendSomething(this.processChannelHandleMap["".concat(this.currentSerialport.port)], {
+            this.processChannelHandleMap["".concat(this.currentSerialport.port)].send({
                 cmd: "set",
                 data: t.data,
                 messageId: r.messageId
-            }), logger.debug("> ".concat(this.response.io.id, ": -> [Set]"), JSON.stringify(t.data)),
-            r.reply(null);
+            }), console.log("> ".concat(this.response.io.id, ": -> [Set]"), JSON.stringify(t.data)),
+            r.reply(null, this.currentSerialport.port);
         }
     }, {
         key: "doDrain",
         value: function(e, r) {
-            if (!this.processChannelHandleMap["".concat(this.currentSerialport.port)]) return logger.debug("> ".concat(r.io.id, ": -> [doDrain], err: disconnect.")),
-            r.reply("disconnect");
-            this.processSendSomething(this.processChannelHandleMap["".concat(this.currentSerialport.port)], {
+            if (!this.processChannelHandleMap["".concat(this.currentSerialport.port)]) return console.log("> ".concat(r.io.id, ": -> [doDrain], err: disconnect.")),
+            r.reply("disconnect", this.currentSerialport.port);
+            this.processChannelHandleMap["".concat(this.currentSerialport.port)].send({
                 cmd: "drain",
                 messageId: r.messageId
-            });
+            }), this.messageChannelHandleMap[r.messageId] = r;
         }
     }, {
         key: "drain",
         value: function(e, r) {
-            var t = msgChannel.pop(r);
-            t ? t.reply(e) : logger.debug("message[".concat(r, "]: serialport drain missing."));
+            if (this.messageChannelHandleMap[r]) {
+                var t = this.messageChannelHandleMap[r];
+                delete this.messageChannelHandleMap[r], t.reply(e, this.currentSerialport.port);
+            } else console.log("info: serialport drain 响应请求失败，丢失消息。", this.messageChannelHandleMap, r);
         }
     }, {
         key: "doWrite",
         value: function(e, r) {
-            if (!this.processChannelHandleMap["".concat(this.currentSerialport.port)]) return logger.debug("> ".concat(r.io.id, ": -> [doWrite], err: disconnect.")),
-            r.reply("disconnect");
+            if (!this.processChannelHandleMap["".concat(this.currentSerialport.port)]) return console.log("> ".concat(r.io.id, ": -> [doWrite], err: disconnect.")),
+            r.reply("disconnect", this.currentSerialport.port);
             var t = e.getParams();
-            this.processSendSomething(this.processChannelHandleMap["".concat(this.currentSerialport.port)], {
+            this.processChannelHandleMap["".concat(this.currentSerialport.port)].send({
                 cmd: "write",
                 data: t.data,
                 encode: t.encode,
                 messageId: r.messageId
-            }), logger.debug("> ".concat(this.response.io.id, ": -> [Write]"), new Buffer(t.data)),
-            r.reply(null);
+            }), console.log("> ".concat(this.response.io.id, ": -> [Write]"), new Buffer(t.data)),
+            r.reply(null, this.currentSerialport.port);
         }
     }, {
         key: "doFlush",
@@ -136,87 +118,94 @@ var _interopRequireDefault = require("@babel/runtime/helpers/interopRequireDefau
         }
     }, {
         key: "flush",
-        value: function(e, r) {
-            var t = msgChannel.pop(r);
-            t ? t.reply(e) : logger.debug("message[".concat(r, "]: serialport flush missing."));
+        value: function(e, r, t) {
+            if (this.messageChannelHandleMap[r]) {
+                var n = this.messageChannelHandleMap[r];
+                delete this.messageChannelHandleMap[r], console.log("> ".concat(n.io.id, ": <- [flush]")),
+                n.reply(e, t);
+            } else console.log("info: serialport flush 响应请求失败，丢失消息。", this.messageChannelHandleMap, r);
         }
     }, {
         key: "open",
-        value: function(e, r) {
-            var t = msgChannel.pop(r);
-            t ? t.reply(e) : logger.debug("message[".concat(r, "]: serialport open missing."));
+        value: function(e, r, t) {
+            if (this.messageChannelHandleMap[r]) {
+                var n = this.messageChannelHandleMap[r];
+                delete this.messageChannelHandleMap[r], console.log("> ".concat(n.io.id, ": <- [Connected] "), t),
+                n.reply(e, t);
+            } else console.log("info: serialport open 返回失败，丢失消息。", this.messageChannelHandleMap, r);
         }
     }, {
         key: "kill",
         value: function() {
-            logger.debug("prepare kill serialport process"), this.processChannelHandleMap["".concat(this.currentSerialport.port)] && (this.processChannelHandleMap["".concat(this.currentSerialport.port)].killed || this.processChannelHandleMap["".concat(this.currentSerialport.port)].kill("SIGTERM"));
+            console.log("调用到kill function"), this.processChannelHandleMap["".concat(this.currentSerialport.port)] && (console.log("当前子进程PID", this.processChannelHandleMap["".concat(this.currentSerialport.port)].pid),
+            console.log("当前子进程是否已经被killed", this.processChannelHandleMap["".concat(this.currentSerialport.port)].killed),
+            this.processChannelHandleMap["".concat(this.currentSerialport.port)].killed || this.processChannelHandleMap["".concat(this.currentSerialport.port)].kill("SIGTERM")),
+            clearInterval(this.heartLoop);
         }
     }, {
         key: "fork",
-        value: function(e, r) {
-            var t = this;
-            if (this.processChannelHandleMap["".concat(this.currentSerialport.port)]) return channel.withPlatformsConnect(r.io.id, this.getSerialportTarget(), this.processChannelHandleMap["".concat(this.currentSerialport.port)]),
-            r.reply(null);
+        value: function() {
+            var r = this;
+            if (this.processChannelHandleMap["".concat(this.currentSerialport.port)]) return channel.withPlatformsConnect(this.response.io.id, this.getSerialportTarget(), this.processChannelHandleMap["".concat(this.currentSerialport.port)]),
+            this.response.reply(null, this.currentSerialport.port);
             this.processChannelHandleMap["".concat(this.currentSerialport.port)] = child_process.fork(SerialPortChildProcess),
-            channel.withPlatformsConnect(r.io.id, this.getSerialportTarget(), this.processChannelHandleMap["".concat(this.currentSerialport.port)]),
-            this.processSendSomething(this.processChannelHandleMap["".concat(this.currentSerialport.port)], {
+            channel.withPlatformsConnect(this.response.io.id, this.getSerialportTarget(), this.processChannelHandleMap["".concat(this.currentSerialport.port)]),
+            this.processChannelHandleMap["".concat(this.currentSerialport.port)].send({
                 cmd: "open",
                 options: this.currentSerialport,
-                messageId: r.messageId
-            }), this.processChannelHandleMap["".concat(this.currentSerialport.port)].on("message", function(e) {
+                messageId: this.response.messageId
+            }), this.keepalived(), this.messageChannelHandleMap[this.response.messageId] = this.response,
+            this.processChannelHandleMap["".concat(this.currentSerialport.port)].on("message", function(e) {
                 switch (e.method) {
                   case "flush":
-                    return t.flush(e.error, e.messageId);
+                    return r.flush(e.error, e.messageId, e.connectName);
 
                   case "drain":
-                    return t.drain(e.error, e.messageId);
+                    return r.drain(e.error, e.messageId, e.connectName);
 
                   case "disconnect":
                   case "close":
-                    return t.response.push(t.getSerialportTarget(e.connectName), e.method, e.connectName),
-                    t.kill();
+                    return r.response.push(r.getSerialportTarget(), e.method, e.connectName), r.kill();
 
                   case "error":
-                    return t.response.push(t.getSerialportTarget(e.connectName), e.error, e.connectName),
-                    t.kill();
+                    return r.response.push(r.getSerialportTarget(), e.error, e.connectName), r.kill();
 
                   case "data":
-                    return logger.debug("> ".concat(t.response.io.id, ": <- [Read]"), new Buffer(e.data)),
-                    t.response.push(t.getSerialportTarget(e.connectName), null, e.connectName, e.data);
+                    return console.log("> ".concat(r.response.io.id, ": <- [Read]"), new Buffer(e.data)),
+                    r.response.push(r.getSerialportTarget(), null, e.connectName, e.data);
 
                   case "open":
-                    return t.open(null, e.messageId);
+                    return r.open(null, e.messageId, e.port);
                 }
             }), this.processChannelHandleMap["".concat(this.currentSerialport.port)].on("disconnect", function() {
-                logger.debug("process disconnect."), t.process_GC();
+                console.log("> ".concat(r.response.io.id, ": [info] 子进程 disconnect ").concat(r.currentSerialport.port)),
+                r.kill(), r.response.push(r.getSerialportTarget(), "disconnect", r.currentSerialport.port),
+                r.clearChannelMap();
             }), this.processChannelHandleMap["".concat(this.currentSerialport.port)].on("close", function() {
-                logger.debug("process close."), t.process_GC();
+                console.log("> ".concat(r.response.io.id, ": [info] 子进程 close ").concat(r.currentSerialport.port)),
+                r.kill(), r.response.push(r.getSerialportTarget(), "disconnect", r.currentSerialport.port),
+                r.clearChannelMap();
             });
         }
     }, {
-        key: "processSendSomething",
-        value: function(e, r) {
-            try {
-                e.send(r);
-            } catch (e) {
-                logger.debug("process send error", r);
-            }
+        key: "keepalived",
+        value: function() {
+            var r = this;
+            this.heartLoop = setInterval(function() {
+                for (var e in r.processChannelHandleMap) r.processChannelHandleMap[e].pid && r.processChannelHandleMap[e].send({
+                    cmd: "heart"
+                });
+            }, 3e3);
         }
     }, {
-        key: "process_GC",
+        key: "clearChannelMap",
         value: function() {
-            for (var r in this.processChannelHandleMap) try {
-                this.processChannelHandleMap[r].killed && (this.response.push(this.getSerialportTarget(r), "disconnect", r),
-                delete this.processChannelHandleMap[r], channel.untiePlatformsConnect(this.getSerialportTarget(r)));
-            } catch (e) {
-                logger.debug("process[".concat(r, "] is not exist."));
-            }
+            delete this.processChannelHandleMap["".concat(this.currentSerialport.port)], channel.untiePlatformsConnect(this.response.io.id, this.getSerialportTarget());
         }
     }, {
         key: "getSerialportTarget",
         value: function() {
-            var e = 0 < arguments.length && void 0 !== arguments[0] ? arguments[0] : "";
-            return "" === e ? "serialport:" + this.currentSerialport.port : "serialport:" + e;
+            return "serialport:" + this.currentSerialport.port;
         }
     } ]), e;
 }();

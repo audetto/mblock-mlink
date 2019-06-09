@@ -1,10 +1,26 @@
 "use strict";
 
-var _interopRequireDefault = require("@babel/runtime/helpers/interopRequireDefault"), _classCallCheck2 = _interopRequireDefault(require("@babel/runtime/helpers/classCallCheck")), _createClass2 = _interopRequireDefault(require("@babel/runtime/helpers/createClass")), Request = function() {
-    function r(e) {
-        (0, _classCallCheck2.default)(this, r), this.verifiy(e), this.Body = e;
+function _classCallCheck(e, r) {
+    if (!(e instanceof r)) throw new TypeError("Cannot call a class as a function");
+}
+
+function _defineProperties(e, r) {
+    for (var t = 0; t < r.length; t++) {
+        var n = r[t];
+        n.enumerable = n.enumerable || !1, n.configurable = !0, "value" in n && (n.writable = !0),
+        Object.defineProperty(e, n.key, n);
     }
-    return (0, _createClass2.default)(r, [ {
+}
+
+function _createClass(e, r, t) {
+    return r && _defineProperties(e.prototype, r), t && _defineProperties(e, t), e;
+}
+
+var Request = function() {
+    function r(e) {
+        _classCallCheck(this, r), this.verifiy(e), this.Body = e;
+    }
+    return _createClass(r, [ {
         key: "verifiy",
         value: function(e) {
             if (!e.hasOwnProperty("connectType")) throw new Error("Missing 'connectType'.");

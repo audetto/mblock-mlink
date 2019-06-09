@@ -1,18 +1,31 @@
 "use strict";
 
-var _interopRequireDefault = require("@babel/runtime/helpers/interopRequireDefault"), _classCallCheck2 = _interopRequireDefault(require("@babel/runtime/helpers/classCallCheck")), _createClass2 = _interopRequireDefault(require("@babel/runtime/helpers/createClass")), SerialPort = require("./platforms/serialport/serialport"), wlanScan = require("./platforms/wlanScan"), Request = require("./request"), Response = require("./response"), _require = require("./constant"), ROUTER = _require.ROUTER, Router = function() {
-    function r(e) {
-        (0, _classCallCheck2.default)(this, r), this.IO = e;
+function _classCallCheck(e, r) {
+    if (!(e instanceof r)) throw new TypeError("Cannot call a class as a function");
+}
+
+function _defineProperties(e, r) {
+    for (var t = 0; t < r.length; t++) {
+        var n = r[t];
+        n.enumerable = n.enumerable || !1, n.configurable = !0, "value" in n && (n.writable = !0),
+        Object.defineProperty(e, n.key, n);
     }
-    return (0, _createClass2.default)(r, [ {
+}
+
+function _createClass(e, r, t) {
+    return r && _defineProperties(e.prototype, r), t && _defineProperties(e, t), e;
+}
+
+var SerialPort = require("./platforms/serialport/serialport"), Request = require("./request"), Response = require("./response"), Router = function() {
+    function r(e) {
+        _classCallCheck(this, r), this.IO = e;
+    }
+    return _createClass(r, [ {
         key: "reflect",
         value: function(e) {
             switch (e) {
-              case ROUTER.CONNECT_TYPE.SERIALPORT:
+              case "serialport":
                 return SerialPort;
-
-              case ROUTER.CONNECT_TYPE.WLAN_SCAN:
-                return wlanScan;
 
               default:
                 throw new Error("unknown 'connectType'.");
@@ -23,13 +36,13 @@ var _interopRequireDefault = require("@babel/runtime/helpers/interopRequireDefau
         value: function(e, r) {
             var t = new Response(this.IO, e);
             try {
-                var s = new Request(r);
-                t.messageBody.connectType = s.Body.connectType, t.messageBody.method = s.Body.cmd,
-                s.getOptions().hasOwnProperty("port") && (t.messageBody.connectName = s.getOptions().port),
-                this.reflect(s.Body.connectType).executeCmd(s, t);
+                var n = new Request(r);
+                t.messageBody.connectType = n.Body.connectType, t.messageBody.method = n.Body.cmd,
+                n.getOptions().hasOwnProperty("port") && (t.messageBody.connectName = n.getOptions().port),
+                this.reflect(n.Body.connectType).executeCmd(n, t);
             } catch (e) {
-                var a = e.hasOwnProperty("message") ? e.message : "service error.";
-                t.reply(a, "");
+                var o = e.hasOwnProperty("message") ? e.message : "service error.";
+                t.reply(o, "");
             }
         }
     } ]), r;

@@ -22,8 +22,6 @@
   },
   "homepage": "https://github.com/audetto/mblock-mlink#readme",
   "dependencies": {
-    "@babel/runtime": "^7.4.5",
-    "iconv-lite": "^0.4.24",
     "serialport": "^7.1.5",
     "socket.io": "^2.2.0"
   }

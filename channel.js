@@ -1,48 +1,64 @@
 "use strict";
 
-var _interopRequireDefault = require("@babel/runtime/helpers/interopRequireDefault"), _classCallCheck2 = _interopRequireDefault(require("@babel/runtime/helpers/classCallCheck")), _createClass2 = _interopRequireDefault(require("@babel/runtime/helpers/createClass")), logger = require("./logger"), Channel = function() {
-    function e() {
-        (0, _classCallCheck2.default)(this, e), this.channelHandleMap = {}, this.channelPlatformsConnectHandleMap = {};
+function _classCallCheck(n, e) {
+    if (!(n instanceof e)) throw new TypeError("Cannot call a class as a function");
+}
+
+function _defineProperties(n, e) {
+    for (var a = 0; a < e.length; a++) {
+        var t = e[a];
+        t.enumerable = t.enumerable || !1, t.configurable = !0, "value" in t && (t.writable = !0),
+        Object.defineProperty(n, t.key, t);
     }
-    return (0, _createClass2.default)(e, [ {
+}
+
+function _createClass(n, e, a) {
+    return e && _defineProperties(n.prototype, e), a && _defineProperties(n, a), n;
+}
+
+var Channel = function() {
+    function n() {
+        _classCallCheck(this, n), this.channelHandleMap = {}, this.channelPlatformsConnectHandleMap = {};
+    }
+    return _createClass(n, [ {
         key: "push",
-        value: function(e) {
-            this.channelHandleMap[e.id] = e, this.channelPlatformsConnectHandleMap[e.id] = {};
+        value: function(n) {
+            this.channelHandleMap[n.id] = n, this.channelPlatformsConnectHandleMap[n.id] = {};
         }
     }, {
         key: "pop",
-        value: function(e) {
-            delete this.channelHandleMap[e.id], delete this.channelPlatformsConnectHandleMap[e.id];
+        value: function(n) {
+            delete this.channelHandleMap[n.id], delete this.channelPlatformsConnectHandleMap[n.id];
         }
     }, {
         key: "withPlatformsConnect",
-        value: function(e, n, a) {
-            this.channelPlatformsConnectHandleMap[e] && (this.channelPlatformsConnectHandleMap[e][n] = a);
+        value: function(n, e, a) {
+            this.channelPlatformsConnectHandleMap[n] && (this.channelPlatformsConnectHandleMap[n][e] = a);
         }
     }, {
         key: "untiePlatformsConnect",
-        value: function(e) {
-            for (var n in this.channelPlatformsConnectHandleMap) delete this.channelPlatformsConnectHandleMap[n][e];
+        value: function(n, e) {
+            this.channelPlatformsConnectHandleMap[n] && delete this.channelPlatformsConnectHandleMap[n][e];
         }
     }, {
         key: "getChannelByConnectIdDo",
-        value: function(e, n) {
-            for (var a in this.channelPlatformsConnectHandleMap) this.channelPlatformsConnectHandleMap[a][e] && n(this.channelHandleMap[a]);
+        value: function(n, e) {
+            for (var a in this.channelPlatformsConnectHandleMap) this.channelPlatformsConnectHandleMap[a][n] && e(this.channelHandleMap[a]);
         }
     }, {
         key: "platformsGC",
-        value: function(e) {
+        value: function(n) {
             try {
-                var n = this.channelPlatformsConnectHandleMap[e.id];
-                this.pop(e);
+                var e = this.channelPlatformsConnectHandleMap[n.id];
+                this.pop(n);
                 var a = {};
-                for (var l in this.channelPlatformsConnectHandleMap) for (var t in this.channelPlatformsConnectHandleMap[l]) a[t] = this.channelPlatformsConnectHandleMap[l][t];
-                for (var r in n) a[r] || n[r].kill("SIGTERM");
-            } catch (e) {
-                logger.debug("platformsGC", e);
+                for (var t in this.channelPlatformsConnectHandleMap) for (var l in this.channelPlatformsConnectHandleMap[t]) a[l] = this.channelPlatformsConnectHandleMap[t][l];
+                for (var o in e) a[o] || e[o].kill("SIGTERM");
+            } catch (n) {
+                console.log("platformsGC", n);
             }
         }
-    } ]), e;
+    } ]), n;
 }();
 
 module.exports = new Channel();
