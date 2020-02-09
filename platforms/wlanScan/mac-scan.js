@@ -1,5 +1,4 @@
 "use strict";
-
 var exec = require("child_process").exec,
     macProvider = "/System/Library/PrivateFrameworks/Apple80211.framework/Versions/Current/Resources/airport",
     networkUtils = require("./network-utils.js"),
@@ -17,9 +16,9 @@ function scanWifi(r) {
                 SECURITY: "SECURITY",
                 CC: "CC"
             }, e);
-            s && s(null, i);
-        });
-    };
+            s && s(null, i)
+        })
+    }
 }
 
 function parseAirport(r, e) {
@@ -30,7 +29,6 @@ function parseAirport(r, e) {
         signal_level: i[a].substr(n, t - n).trim(),
         security: i[a].substr(o).trim()
     });
-    return c.pop(), c;
+    return c.pop(), c
 }
-
 exports.scanWifi = scanWifi;

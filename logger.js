@@ -1,29 +1,32 @@
 "use strict";
-
-var dev = {
-        debug: function(n) {
-            for (var o, r = arguments.length, e = new Array(1 < r ? r - 1 : 0), c = 1; c < r; c++) e[c - 1] = arguments[c];
-            (o = console).debug.apply(o, [n].concat(e));
+var log4js = require("log4js"),
+    _require = require("./constant"),
+    ROUTER = _require.ROUTER,
+    configure = {
+        replaceConsole: !0,
+        appenders: {
+            stdout: {
+                type: "console"
+            },
+            info: {
+                type: "file",
+                filename: ROUTER.MLINK_LOG_PATH + "/runtime.log",
+                maxLogSize: 2048e4,
+                backups: 10
+            }
         },
-        info: function(n) {
-            for (var o, r = arguments.length, e = new Array(1 < r ? r - 1 : 0), c = 1; c < r; c++) e[c - 1] = arguments[c];
-            (o = console).log.apply(o, [n].concat(e));
+        categories: {
+            default: {
+                appenders: ["stdout"],
+                level: "debug"
+            },
+            info: {
+                appenders: ["info"],
+                level: "debug"
+            }
         }
-    },
-    pro = {
-        info: function(n) {
-            for (var o, r = arguments.length, e = new Array(1 < r ? r - 1 : 0), c = 1; c < r; c++) e[c - 1] = arguments[c];
-            (o = console).log.apply(o, [n].concat(e));
-        }
-    },
-    combine = function(n, o) {
-        var r = {};
-        if ("dev" === process.env.NODE_ENV) {
-            for (var e in o) r[e] = function() {};
-            return Object.assign({}, r, n);
-        }
-        for (var c in n) r[c] = function() {};
-        return Object.assign({}, r, o);
     };
-
-module.exports = combine(dev, pro);
+log4js.configure(configure);
+var type = "dev" === process.env.NODE_ENV ? "default" : "info",
+    logger = log4js.getLogger(type);
+module.exports = logger;
