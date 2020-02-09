@@ -1,6 +1,12 @@
 "use strict";
 
-var server = require("http").createServer(), io = require("socket.io")(server), fs = require("fs"), SOCKET_PORT = 55278, logger = require("./logger"), Router = require("./router"), channel = require("./channel");
+var server = require("http").createServer(),
+    io = require("socket.io")(server),
+    fs = require("fs"),
+    SOCKET_PORT = 55278,
+    logger = require("./logger"),
+    Router = require("./router"),
+    channel = require("./channel");
 
 io.on("connection", function(e) {
     channel.push(e);

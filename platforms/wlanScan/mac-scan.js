@@ -1,6 +1,9 @@
 "use strict";
 
-var exec = require("child_process").exec, macProvider = "/System/Library/PrivateFrameworks/Apple80211.framework/Versions/Current/Resources/airport", networkUtils = require("./network-utils.js"), env = require("./env");
+var exec = require("child_process").exec,
+    macProvider = "/System/Library/PrivateFrameworks/Apple80211.framework/Versions/Current/Resources/airport",
+    networkUtils = require("./network-utils.js"),
+    env = require("./env");
 
 function scanWifi(r) {
     return function(s) {

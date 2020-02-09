@@ -1,37 +1,41 @@
 "use strict";
 
-var serialport = require("serialport"), logger = require("../../logger"), SerialPort = null, currentPort = null, connect = function(e, r) {
-    var o = e.port;
-    currentPort = o, delete e.port, (SerialPort = new serialport(o, e)).on("open", function() {
-        process.send({
-            method: "open",
-            messageId: r,
-            port: o
+var serialport = require("serialport"),
+    logger = require("../../logger"),
+    SerialPort = null,
+    currentPort = null,
+    connect = function(e, r) {
+        var o = e.port;
+        currentPort = o, delete e.port, (SerialPort = new serialport(o, e)).on("open", function() {
+            process.send({
+                method: "open",
+                messageId: r,
+                port: o
+            });
+        }), SerialPort.on("error", function(e) {
+            process.send({
+                method: "error",
+                error: e,
+                connectName: currentPort
+            }), logger.debug("[child] serialport open error:", e);
+        }), SerialPort.on("data", function(e) {
+            process.send({
+                method: "data",
+                data: e,
+                connectName: currentPort
+            });
+        }), SerialPort.on("close", function() {
+            logger.debug("[child] serialport close."), process.send({
+                method: "close",
+                connectName: currentPort
+            });
+        }), SerialPort.on("disconnect", function() {
+            logger.debug("[child] serialport disconnect."), process.send({
+                method: "disconnect",
+                connectName: currentPort
+            });
         });
-    }), SerialPort.on("error", function(e) {
-        process.send({
-            method: "error",
-            error: e,
-            connectName: currentPort
-        }), logger.debug("[child] serialport open error:", e);
-    }), SerialPort.on("data", function(e) {
-        process.send({
-            method: "data",
-            data: e,
-            connectName: currentPort
-        });
-    }), SerialPort.on("close", function() {
-        logger.debug("[child] serialport close."), process.send({
-            method: "close",
-            connectName: currentPort
-        });
-    }), SerialPort.on("disconnect", function() {
-        logger.debug("[child] serialport disconnect."), process.send({
-            method: "disconnect",
-            connectName: currentPort
-        });
-    });
-};
+    };
 
 process.on("message", function(r) {
     if (logger.debug("[child] 进程 ".concat(process.pid, " 收到的数据:"), r.cmd), "open" === r.cmd) return connect(r.options, r.messageId);
