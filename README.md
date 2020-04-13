@@ -17,3 +17,7 @@ Changes are
 
 It is not clear why the Windows/MacOS and Linux versions are slightly different: I don't know which one is more recent, and being node.js apps, they work on all platforms anyway.
 The Linux app seems to do a wifi scan as well, a feature not present in the other 2.
+
+## Run
+
+node .
