@@ -26,7 +26,7 @@
     "http-server": "^0.12.1",
     "iconv-lite": "^0.4.24",
     "log4js": "^6.1.2",
-    "moment": "^2.24.0",
+    "moment": "^2.29.4",
     "node-hid": "^1.2.0",
     "node-wifi": "^2.0.12",
     "open": "^7.0.3",
