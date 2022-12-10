@@ -25,7 +25,7 @@
     "@babel/runtime": "^7.9.2",
     "http-server": "^0.12.1",
     "iconv-lite": "^0.4.24",
-    "log4js": "^6.1.2",
+    "log4js": "^6.4.0",
     "moment": "^2.24.0",
     "node-hid": "^1.2.0",
     "node-wifi": "^2.0.12",
