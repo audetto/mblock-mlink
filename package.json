@@ -23,7 +23,7 @@
   "homepage": "https://github.com/audetto/mblock-mlink#readme",
   "dependencies": {
     "@babel/runtime": "^7.9.2",
-    "http-server": "^0.12.1",
+    "http-server": "^14.1.1",
     "iconv-lite": "^0.4.24",
     "log4js": "^6.1.2",
     "moment": "^2.24.0",
